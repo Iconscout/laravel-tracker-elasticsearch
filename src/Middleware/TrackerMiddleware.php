@@ -92,7 +92,7 @@ class TrackerMiddleware
         $model = $model + [
             'referer' => [
                 'url' => $referer_url,
-                'domain' => urlToDomain($referer_url),
+                'domain' => $this->domain($referer_url),
                 'medium' => null,
                 'source' => null,
                 'search_term' => null
@@ -124,6 +124,21 @@ class TrackerMiddleware
         }
 
         $this->es->indexDocument($model, 'log_queries');
+    }
+
+    protected function domain($url)
+    {
+        $host = @parse_url($url, PHP_URL_HOST);
+
+        if (! $host) {
+            $host = $url;
+        }
+
+        if (substr($host, 0, 4) === "www.") {
+            $host = substr($host, 4);
+        }
+
+        return $host;
     }
 
     protected function getDeviceKind()

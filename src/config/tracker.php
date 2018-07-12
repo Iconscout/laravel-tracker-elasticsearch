@@ -15,15 +15,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Tracker Driver Configurations
-    |--------------------------------------------------------------------------
-    |
-    | Available tracker drivers and respective configurations.
-    |
-    */
-
-    /*
-    |--------------------------------------------------------------------------
     | Disabling Tracker
     |--------------------------------------------------------------------------
     |
@@ -36,13 +27,35 @@ return [
         'sql_queries' => env('TRACKER_SQL_QUERIES_DISABLED', false)
     ],
 
-    'elastic' => [
-        'client' => [
-            'hosts' => [
-                env('TRACKER_ELASTIC_HOST', 'localhost:9200')
-            ]
-        ],
-        'index' => env('TRACKER_INDEX', 'laravel_tracker')
+    /*
+    |--------------------------------------------------------------------------
+    | Tracker Driver
+    |--------------------------------------------------------------------------
+    |
+    | The default tracker driver used to keep track of changes.
+    |
+    */
+
+    'driver' => env('TRACKER_DRIVER', 'elastic'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Tracker Driver Configurations
+    |--------------------------------------------------------------------------
+    |
+    | Available tracker drivers and respective configurations.
+    |
+    */
+
+    'drivers' => [
+        'elastic' => [
+            'client' => [
+                'hosts' => [
+                    env('TRACKER_ELASTIC_HOST', 'localhost:9200')
+                ]
+            ],
+            'index' => env('TRACKER_INDEX', 'laravel_tracker')
+        ]
     ],
 
     /*

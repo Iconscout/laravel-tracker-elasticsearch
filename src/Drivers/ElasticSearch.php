@@ -34,8 +34,8 @@ class ElasticSearch
      */
     public function __construct()
     {
-        $this->client = ClientBuilder::create()->setHosts(Config::get('tracker.elastic.client.hosts', ['localhost:9200']))->build();
-        $this->index = Config::get('tracker.elastic.index', 'laravel_tracker');
+        $this->client = ClientBuilder::create()->setHosts(Config::get('tracker.drivers.elastic.client.hosts', ['localhost:9200']))->build();
+        $this->index = Config::get('tracker.drivers.elastic.index', 'laravel_tracker');
     }
 
     public function indexDocument($model, $type)

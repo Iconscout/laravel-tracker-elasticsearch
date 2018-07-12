@@ -41,7 +41,7 @@ class DeleteCommand extends Command
      */
     public function handle(ElasticSearch $es)
     {
-        $index = Config::get('tracker.elastic.index', 'laravel_tracker');
+        $index = Config::get('tracker.drivers.elastic.index', 'laravel_tracker');
 
         if ($es->existsIndex()) {
 

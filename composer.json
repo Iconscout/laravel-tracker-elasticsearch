@@ -13,6 +13,13 @@
         "es",
     ],
     "type": "package",
+    "repositories": [
+        {
+            "packagist.org": false,
+            "type": "vcs",
+            "url": "https://github.com/rankarpan/laravel-uuid"
+        }
+    ],
     "license": "MIT",
     "support": {
         "issues": "https://github.com/iconscout/laravel-tracker-elasticsearch/issues",
@@ -28,7 +35,8 @@
         "php": ">=7.0",
         "jenssegers/agent": "^2.6",
         "snowplow/referer-parser": "^0.2.0",
-        "elasticsearch/elasticsearch": "6.*"
+        "elasticsearch/elasticsearch": "6.*",
+        "webpatser/laravel-uuid": "dev-master"
     },
     "autoload": {
         "psr-4": {

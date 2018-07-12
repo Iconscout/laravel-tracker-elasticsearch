@@ -1,0 +1,45 @@
+{
+    "name": "iconscout/laravel-tracker-elasticsearch",
+    "description": "A Laravel Visitor Tracker. Allows storage of the trackers in elasticsearch.",
+    "keywords": [
+        "tracker",
+        "tracking",
+        "visitor",
+        "logging",
+        "user agent",
+        "mobile detection",
+        "laravel",
+        "elasticsearch",
+        "es",
+    ],
+    "type": "package",
+    "license": "MIT",
+    "support": {
+        "issues": "https://github.com/iconscout/laravel-tracker-elasticsearch/issues",
+        "source": "https://github.com/iconscout/laravel-tracker-elasticsearch"
+    },
+    "authors": [
+        {
+            "name": "Arpan Rank",
+            "email": "arpan@iconscout.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0",
+        "jenssegers/agent": "^2.6",
+        "snowplow/referer-parser": "^0.2.0",
+        "elasticsearch/elasticsearch": "6.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Iconscout\\Tracker\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Iconscout\\Tracker\\TrackerServiceProvider"
+            ]
+        }
+    }
+}

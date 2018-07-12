@@ -25,7 +25,7 @@ return [
     'elastic' => [
         'client' => [
             'hosts' => [
-                env('TRACKER__ELASTIC_HOST', 'localhost:9200')
+                env('TRACKER_ELASTIC_HOST', 'localhost:9200')
             ]
         ],
         'index' => env('TRACKER_INDEX', 'laravel_tracker')

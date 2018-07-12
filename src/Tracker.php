@@ -22,7 +22,7 @@ use Snowplow\RefererParser\Parser;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Cookie;
-use Illuminate\Support\Facades\Route;
+// use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Session;
 
@@ -46,7 +46,7 @@ class Tracker
 
     public function logQuery($request, $model)
     {
-        if ($this->excludeRoutes()) {
+        if ($this->excludedTracker()) {
             return false;
         }
 
@@ -117,7 +117,7 @@ class Tracker
 
     public function sqlQuery($sql, $bindings, $time, $connection_name)
     {
-        if ($this->excludeRoutes()) {
+        if ($this->excludedTracker()) {
             return false;
         }
 
@@ -183,9 +183,16 @@ class Tracker
         return Config::get('tracker.disabled.sql_queries', false);
     }
 
-    public function excludeRoutes(): bool
+    public function excludedTracker(): bool
     {
-        $route = Route::currentRouteName();
+        $request = request();
+
+        return $this->excludedRoutes($request->route()->getName()) || $this->excludedPaths($request->path());
+    }
+
+    public function excludedRoutes($route): bool
+    {
+        // $route = Route::currentRouteName();
         $exclude_routes = Config::get('tracker.excludes.routes');
 
         if (is_array($exclude_routes)) {
@@ -197,6 +204,23 @@ class Tracker
             return false;
         } else {
             return str_is($exclude_routes, $route);
+        }
+    }
+
+    public function excludedPaths($path): bool
+    {
+        // $path = request()->path();
+        $exclude_path = Config::get('tracker.excludes.paths');
+
+        if (is_array($exclude_path)) {
+            foreach ($exclude_path as $exclude_path) {
+                if (str_is($exclude_path, $path)) {
+                    return true;
+                }
+            }
+            return false;
+        } else {
+            return str_is($exclude_path, $path);
         }
     }
 

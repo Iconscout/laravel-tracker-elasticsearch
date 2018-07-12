@@ -73,16 +73,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Tracker Excludes (Routes) Configurations
+    | Tracker Excludes (Routes & Paths) Configurations
     |--------------------------------------------------------------------------
     |
-    | Don't track following routes.
+    | Don't track following routes & paths.
     |
     */
     'excludes' => [
         'routes' => [
             'horizon.*'
-        ]
+        ],
+        'paths' => []
     ],
 
     /*

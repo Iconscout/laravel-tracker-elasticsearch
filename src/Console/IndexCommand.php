@@ -52,7 +52,8 @@ class IndexCommand extends Command
             $this->info("The {$index}_write alias for the {$index} index was created!");
 
             $types = [
-                'log_queries'
+                'log_queries',
+                'sql_queries'
             ];
 
             foreach ($types as $type) {

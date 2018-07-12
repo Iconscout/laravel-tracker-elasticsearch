@@ -16,13 +16,17 @@ namespace Iconscout\Tracker;
 use DB;
 use Carbon\Carbon;
 use Webpatser\Uuid\Uuid;
-use Elasticsearch\ClientBuilder;
+use Jenssegers\Agent\Agent;
+// use Elasticsearch\ClientBuilder;
+use Snowplow\RefererParser\Parser;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Session;
+
 use Iconscout\Tracker\Drivers\ElasticSearch;
+use Iconscout\Tracker\Jobs\TrackerIndexQueuedModels;
 
 class Tracker
 {
@@ -39,7 +43,95 @@ class Tracker
         $this->es = new ElasticSearch;
     }
 
-    public function logSqlQuery($sql, $bindings, $time, $connection_name)
+    public function logQuery($request, $model)
+    {
+        $model = $this->indexLogQueryDocument($request, $model);
+        $type = 'log_queries';
+
+        if (Config::get('tracker.queue', false)) {
+            return $this->indexQueueLogQueryDocument($model, $type);
+        }
+
+        return $this->es->indexDocument($model, $type);
+    }
+
+    public function indexQueueLogQueryDocument($model, $type)
+    {
+        dispatch((new TrackerIndexQueuedModels($model, $type))
+                ->onQueue($this->syncWithTrackerUsingQueue())
+                ->onConnection($this->syncWithTrackerUsing()));
+
+        return true;
+    }
+
+    public function indexLogQueryDocument($request, $model)
+    {
+        $agent = new Agent;
+        $browser = $agent->browser();
+        $platform = $agent->platform();
+        $referer_url = $request->headers->get('referer');
+
+        $model = $model + [
+            'referer' => [
+                'url' => $referer_url,
+                'domain' => $this->domain($referer_url),
+                'medium' => null,
+                'source' => null,
+                'search_term' => null
+            ],
+            'url' => $request->url(),
+            'route' => $request->route()->getName(),
+            'device' => [
+                'kind' => $agent->device(),
+                'model' => $this->getDeviceKind($agent),
+                'platform' => $platform,
+                'platform_version' => $agent->version($platform),
+                'is_mobile' => $agent->isMobile()
+            ],
+            'agent' => [
+                'name' => $agent->getUserAgent(),
+                'browser' => $browser,
+                'browser_version' => $agent->version($browser),
+            ],
+            'languages' => $agent->languages(),
+            'geoip' => geoip($request->ip())->toArray(),
+            'created_at' => Carbon::now()->toDateTimeString()
+        ];
+
+        $parser = new Parser;
+        $referer = $parser->parse($referer_url, $model['url']);
+
+        if ($referer->isKnown()) {
+            $model['referer']['medium'] = $referer->getMedium();
+            $model['referer']['source'] = $referer->getSource();
+            $model['referer']['search_term'] = $referer->getSearchTerm();
+        }
+
+        return $model;
+    }
+
+    public function sqlQuery($sql, $bindings, $time, $connection_name)
+    {
+        $model = $this->indexSqlQueryDocument($sql, $bindings, $time, $connection_name);
+        $type = 'sql_queries';
+
+        if (Config::get('tracker.queue', false)) {
+            return $this->indexQueueSqlQueryDocument($model, $type);
+        }
+
+        return $this->es->indexDocument($model, $type);
+    }
+
+    public function indexQueueSqlQueryDocument($model, $type)
+    {
+        dispatch((new TrackerIndexQueuedModels($model, $type))
+                ->onQueue($this->syncWithTrackerUsingQueue())
+                ->onConnection($this->syncWithTrackerUsing()));
+
+        return true;
+    }
+
+    public function indexSqlQueryDocument($sql, $bindings, $time, $connection_name)
     {
         $sql_query = htmlentities($sql);
         $database_name = DB::connection($connection_name)->getDatabaseName();
@@ -64,7 +156,7 @@ class Tracker
             'created_at' => Carbon::now()->toDateTimeString()
         ];
 
-        $this->es->indexDocument($model, 'sql_queries');
+        return $model;
     }
 
     public function getTrackerDisabled(): bool
@@ -94,8 +186,46 @@ class Tracker
         return $cookie;
     }
 
+    public function syncWithTrackerUsingQueue()
+    {
+        return Config::get('tracker.queue.queue');
+    }
+
+    public function syncWithTrackerUsing()
+    {
+        return Config::get('tracker.queue.connection', Config::get('queue.default'));
+    }
+
     public function isBinary($str)
     {
         return preg_match('~[^\x20-\x7E\t\r\n]~', $str) > 0;
+    }
+
+    public function domain($url)
+    {
+        $host = @parse_url($url, PHP_URL_HOST);
+
+        if (! $host) {
+            $host = $url;
+        }
+
+        if (substr($host, 0, 4) === "www.") {
+            $host = substr($host, 4);
+        }
+
+        return $host;
+    }
+
+    public function getDeviceKind($agent)
+    {
+        if ($agent->isTablet()) {
+            return 'Tablet';
+        } elseif ($agent->isPhone()) {
+            return 'Phone';
+        } elseif ($agent->isComputer()) {
+            return 'Computer';
+        } else {
+            return 'Unavailable';
+        }
     }
 }

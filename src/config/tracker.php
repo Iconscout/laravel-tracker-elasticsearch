@@ -29,6 +29,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Queue Trackable Models
+    |--------------------------------------------------------------------------
+    |
+    | This option allows you to control if the operations that tracker your models
+    | with your tracking are queued. When this is set to "true" then all models
+    | trackable will get queued for better performance.
+    |
+    */
+
+    'queue' => env('TRACKER_QUEUE', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Tracker Driver
     |--------------------------------------------------------------------------
     |

@@ -71,11 +71,11 @@ class TrackerServiceProvider extends ServiceProvider
 
         if (class_exists('Illuminate\Database\Events\QueryExecuted')) {
             $this->app['events']->listen('Illuminate\Database\Events\QueryExecuted', function ($query) use ($tracker) {
-                $tracker->logSqlQuery($query->sql, $query->bindings, $query->time, $query->connectionName);
+                $tracker->sqlQuery($query->sql, $query->bindings, $query->time, $query->connectionName);
             });
         } else {
             $this->app['events']->listen('illuminate.query', function ($sql, $bindings, $time, $connection_name) use ($tracker) {
-                $tracker->logSqlQuery($sql, $bindings, $time, $connection_name);
+                $tracker->sqlQuery($sql, $bindings, $time, $connection_name);
             });
         }
     }

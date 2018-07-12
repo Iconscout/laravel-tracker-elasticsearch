@@ -16,8 +16,8 @@ namespace Iconscout\Tracker\Middleware;
 use Closure;
 use Carbon\Carbon;
 use Webpatser\Uuid\Uuid;
-use Jenssegers\Agent\Agent;
-use Snowplow\RefererParser\Parser;
+// use Jenssegers\Agent\Agent;
+// use Snowplow\RefererParser\Parser;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -34,12 +34,12 @@ class TrackerMiddleware
     /**
      * @var string
      */
-    protected $agent;
+    // protected $agent;
 
     /**
      * @var string
      */
-    protected $parser;
+    // protected $parser;
 
     /**
      * @var string
@@ -51,8 +51,8 @@ class TrackerMiddleware
      */
     public function __construct()
     {
-        $this->agent = new Agent;
-        $this->parser = new Parser;
+        // $this->agent = new Agent;
+        // $this->parser = new Parser;
         $this->es = new ElasticSearch;
     }
 
@@ -83,12 +83,12 @@ class TrackerMiddleware
 
         $response = $next($request);
 
-        $this->log($request, $model);
+        $tracker->logQuery($request, $model);
 
         return $response;
     }
 
-    public function log($request, $model)
+    /*public function log($request, $model)
     {
         $browser = $this->agent->browser();
         $platform = $this->agent->platform();
@@ -157,5 +157,5 @@ class TrackerMiddleware
         } else {
             return 'Unavailable';
         }
-    }
+    }*/
 }

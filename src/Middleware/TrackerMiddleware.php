@@ -66,6 +66,11 @@ class TrackerMiddleware
     public function handle($request, Closure $next)
     {
         $tracker = new Tracker;
+
+        if ($tracker->getTrackerDisabled() || $tracker->getLogTrackerDisabled()) {
+            return $next($request);
+        }
+
         $cookie = $tracker->cookieTracker();
 
         $model = [

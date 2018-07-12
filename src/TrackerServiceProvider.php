@@ -65,8 +65,9 @@ class TrackerServiceProvider extends ServiceProvider
     {
         $tracker = new Tracker;
 
-        $this->client = ClientBuilder::create()->setHosts(Config::get('tracker.elastic.client.hosts', ['localhost:9200']))->build();
-        $this->index = Config::get('tracker.elastic.index', 'laravel_tracker');
+        if ($tracker->getTrackerDisabled() || $tracker->getSqlTrackerDisabled()) {
+            return false;
+        }
 
         if (class_exists('Illuminate\Database\Events\QueryExecuted')) {
             $this->app['events']->listen('Illuminate\Database\Events\QueryExecuted', function ($query) use ($tracker) {

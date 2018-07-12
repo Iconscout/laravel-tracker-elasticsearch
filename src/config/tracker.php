@@ -22,6 +22,20 @@ return [
     |
     */
 
+    /*
+    |--------------------------------------------------------------------------
+    | Disabling Tracker
+    |--------------------------------------------------------------------------
+    |
+    | By setting this value to true, the tracker will be disabled completely.
+    |
+    */
+    'disabled' => [
+        'all_queries' => env('TRACKER_DISABLED', false),
+        'log_queries' => env('TRACKER_LOG_QUERIES_DISABLED', false),
+        'sql_queries' => env('TRACKER_SQL_QUERIES_DISABLED', false)
+    ],
+
     'elastic' => [
         'client' => [
             'hosts' => [

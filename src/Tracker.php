@@ -67,6 +67,21 @@ class Tracker
         $this->es->indexDocument($model, 'sql_queries');
     }
 
+    public function getTrackerDisabled(): bool
+    {
+        return Config::get('tracker.disabled.all_queries', false);
+    }
+
+    public function getLogTrackerDisabled(): bool
+    {
+        return Config::get('tracker.disabled.log_queries', false);
+    }
+
+    public function getSqlTrackerDisabled(): bool
+    {
+        return Config::get('tracker.disabled.sql_queries', false);
+    }
+
     public function cookieTracker()
     {
         if (! Cookie::has(Config::get('tracker.cookie'))) {

@@ -33,6 +33,11 @@ class TrackerCookie
     public function handle($request, Closure $next)
     {
         $tracker = new Tracker;
+
+        if ($tracker->getTrackerDisabled() || ($tracker->getLogTrackerDisabled() && $tracker->getSqlTrackerDisabled())) {
+            return $next($request);
+        }
+
         $cookie = $tracker->cookieTracker();
 
         return $next($request)->withCookie($cookie);

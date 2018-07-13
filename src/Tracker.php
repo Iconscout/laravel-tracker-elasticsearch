@@ -20,6 +20,7 @@ use Jenssegers\Agent\Agent;
 // use Elasticsearch\ClientBuilder;
 use Snowplow\RefererParser\Parser;
 
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Cookie;
 // use Illuminate\Support\Facades\Route;
@@ -168,6 +169,52 @@ class Tracker
         return $model;
     }
 
+    public function errorQuery($request, $exception)
+    {
+        if ($this->excludedTracker()) {
+            return false;
+        }
+
+        $model = $this->indexErrorQueryDocument($request, $exception);
+        $type = 'error_queries';
+
+        if (Config::get('tracker.queue', false)) {
+            return $this->indexQueueErrorQueryDocument($model, $type);
+        }
+
+        return $this->es->indexDocument($model, $type);
+    }
+
+    public function indexQueueErrorQueryDocument($model, $type)
+    {
+        dispatch((new TrackerIndexQueuedModels($model, $type))
+                ->onQueue($this->syncWithTrackerUsingQueue())
+                ->onConnection($this->syncWithTrackerUsing()));
+
+        return true;
+    }
+
+    public function indexErrorQueryDocument($request, $exception)
+    {
+        $cookie = $this->cookieTracker();
+        $log = Cache::tags('tracker')->get($cookie);
+
+        $model = [
+            'id' => Uuid::generate(1, '02:42:ac:14:00:03')->string,
+            'log_id' => $log['id'],
+            'user_id' => $log['user_id'],
+            'cookie_id' => $log['cookie_id'],
+            'code' => $this->trackerStatusCode($exception),
+            'message' => $exception->getMessage(),
+            'file' => $exception->getFile(),
+            'line' => $exception->getLine(),
+            'trace' => $exception->getTraceAsString(),
+            'created_at' => Carbon::now()->toDateTimeString()
+        ];
+
+        return $model;
+    }
+
     public function getTrackerDisabled(): bool
     {
         return Config::get('tracker.disabled.all_queries', false);
@@ -277,5 +324,18 @@ class Tracker
         } else {
             return 'Unavailable';
         }
+    }
+
+    public function trackerStatusCode($exception)
+    {
+        if (method_exists($exception, 'getCode') && $code = $exception->getCode()) {
+            return $code;
+        }
+
+        if (method_exists($exception, 'getStatusCode') && $code = $exception->getStatusCode()) {
+            return $code;
+        }
+
+        return Response::HTTP_INTERNAL_SERVER_ERROR;
     }
 }

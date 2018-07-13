@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Session;
 
 use Iconscout\Tracker\Tracker;
-use Iconscout\Tracker\Drivers\ElasticSearch;
+// use Iconscout\Tracker\Drivers\ElasticSearch;
 
 class TrackerMiddleware
 {
@@ -44,7 +44,7 @@ class TrackerMiddleware
     /**
      * @var string
      */
-    protected $es;
+    // protected $es;
 
     /**
      * ElasticSearch constructor.
@@ -53,7 +53,7 @@ class TrackerMiddleware
     {
         // $this->agent = new Agent;
         // $this->parser = new Parser;
-        $this->es = new ElasticSearch;
+        // $this->es = new ElasticSearch;
     }
 
     /**

@@ -15,11 +15,13 @@ namespace Iconscout\Tracker;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 
 use Elasticsearch\ClientBuilder;
 
 use Iconscout\Tracker\Console\IndexCommand;
 use Iconscout\Tracker\Console\DeleteCommand;
+use Iconscout\Tracker\Exceptions\ErrorHandler;
 use Iconscout\Tracker\Middleware\TrackerCookie;
 use Iconscout\Tracker\Middleware\TrackerMiddleware;
 
@@ -38,6 +40,8 @@ class TrackerServiceProvider extends ServiceProvider
 
         $this->registerMiddlewareToGroup('web', TrackerCookie::class);
         $this->registerMiddlewareToGroup('web', TrackerMiddleware::class);
+
+        $this->registerErrorHandler();
     }
 
     /**
@@ -78,6 +82,19 @@ class TrackerServiceProvider extends ServiceProvider
                 $tracker->sqlQuery($sql, $bindings, $time, $connection_name);
             });
         }
+    }
+
+    protected function registerErrorHandler()
+    {
+        $previousHandler = null;
+
+        if ($this->app->bound(ExceptionHandler::class) === true) {
+            $previousHandler = $this->app->make(ExceptionHandler::class);
+        }
+
+        $this->app->singleton(ExceptionHandler::class, function () use ($previousHandler) {
+            return new ErrorHandler($previousHandler);
+        });
     }
 
     /**

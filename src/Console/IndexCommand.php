@@ -53,7 +53,8 @@ class IndexCommand extends Command
 
             $types = [
                 'log_queries',
-                'sql_queries'
+                'sql_queries',
+                'error_queries'
             ];
 
             foreach ($types as $type) {

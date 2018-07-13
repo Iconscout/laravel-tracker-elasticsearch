@@ -87,6 +87,7 @@ class Tracker
                 'search_term' => null
             ],
             'url' => $request->url(),
+            'params' => $request->query(),
             'route' => $request->route()->getName(),
             'device' => [
                 'kind' => $agent->device(),

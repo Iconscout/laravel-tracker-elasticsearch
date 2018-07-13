@@ -38,7 +38,7 @@ class ErrorHandler extends ExceptionHandler
      */
     public function report(Exception $exception)
     {
-        parent::report($exception);
+        $this->previous? $this->previous->report($exception) : null;
     }
 
     /**

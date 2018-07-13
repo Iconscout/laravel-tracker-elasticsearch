@@ -45,23 +45,23 @@ class Tracker
         $this->es = new ElasticSearch;
     }
 
-    public function logQuery($request, $model)
+    public function trackLog($request, $model)
     {
         if ($this->excludedTracker()) {
             return false;
         }
 
-        $model = $this->indexLogQueryDocument($request, $model);
-        $type = 'log_queries';
+        $model = $this->indexLogDocument($request, $model);
+        $type = 'logs';
 
         if (Config::get('tracker.queue', false)) {
-            return $this->indexQueueLogQueryDocument($model, $type);
+            return $this->indexQueueLogDocument($model, $type);
         }
 
         return $this->es->indexDocument($model, $type);
     }
 
-    public function indexQueueLogQueryDocument($model, $type)
+    public function indexQueueLogDocument($model, $type)
     {
         dispatch((new TrackerIndexQueuedModels($model, $type))
                 ->onQueue($this->syncWithTrackerUsingQueue())
@@ -70,7 +70,7 @@ class Tracker
         return true;
     }
 
-    public function indexLogQueryDocument($request, $model)
+    public function indexLogDocument($request, $model)
     {
         $agent = new Agent;
         $browser = $agent->browser();
@@ -169,23 +169,23 @@ class Tracker
         return $model;
     }
 
-    public function errorQuery($request, $exception)
+    public function trackError($request, $exception)
     {
         if ($this->excludedTracker()) {
             return false;
         }
 
-        $model = $this->indexErrorQueryDocument($request, $exception);
-        $type = 'error_queries';
+        $model = $this->indexErrorDocument($request, $exception);
+        $type = 'errors';
 
         if (Config::get('tracker.queue', false)) {
-            return $this->indexQueueErrorQueryDocument($model, $type);
+            return $this->indexQueueErrorDocument($model, $type);
         }
 
         return $this->es->indexDocument($model, $type);
     }
 
-    public function indexQueueErrorQueryDocument($model, $type)
+    public function indexQueueErrorDocument($model, $type)
     {
         dispatch((new TrackerIndexQueuedModels($model, $type))
                 ->onQueue($this->syncWithTrackerUsingQueue())
@@ -194,7 +194,7 @@ class Tracker
         return true;
     }
 
-    public function indexErrorQueryDocument($request, $exception)
+    public function indexErrorDocument($request, $exception)
     {
         $cookie = $this->cookieTracker();
         $log = Cache::tags('tracker')->get($cookie);
@@ -215,19 +215,15 @@ class Tracker
         return $model;
     }
 
-    public function getTrackerDisabled(): bool
+    public function getTrackerDisabled($type = true): bool
     {
-        return Config::get('tracker.disabled.all_queries', false);
-    }
+        $disabled_type = Config::get('tracker.disabled', false);
 
-    public function getLogTrackerDisabled(): bool
-    {
-        return Config::get('tracker.disabled.log_queries', false);
-    }
-
-    public function getSqlTrackerDisabled(): bool
-    {
-        return Config::get('tracker.disabled.sql_queries', false);
+        if (! is_array($disabled_type)) {
+            return $type === $disabled_type;
+        } else {
+            return in_array($type, $disabled_type);
+        }
     }
 
     public function excludedTracker(): bool

@@ -67,9 +67,9 @@ class TrackerMiddleware
     {
         $tracker = new Tracker;
 
-        if ($tracker->getTrackerDisabled() || $tracker->getLogTrackerDisabled()) {
+        /*if ($tracker->getTrackerDisabled('logs')) {
             return $next($request);
-        }
+        }*/
 
         $cookie = $tracker->cookieTracker();
 
@@ -83,7 +83,7 @@ class TrackerMiddleware
 
         $response = $next($request);
 
-        $tracker->logQuery($request, $model);
+        $tracker->trackLog($request, $model);
 
         return $response;
     }

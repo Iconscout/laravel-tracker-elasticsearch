@@ -38,10 +38,19 @@ class TrackerServiceProvider extends ServiceProvider
             __DIR__.'/config/tracker.php' => config_path('tracker.php'),
         ], 'tracker');
 
-        $this->registerMiddlewareToGroup('web', TrackerCookie::class);
-        $this->registerMiddlewareToGroup('web', TrackerMiddleware::class);
+        $tracker = new Tracker;
 
-        $this->registerErrorHandler();
+        if (! $tracker->getTrackerDisabled()) {
+            $this->registerMiddlewareToGroup('web', TrackerCookie::class);
+        }
+
+        if (! $tracker->getTrackerDisabled('logs')) {
+            $this->registerMiddlewareToGroup('web', TrackerMiddleware::class);
+        }
+
+        if (! $tracker->getTrackerDisabled('errors')) {
+            $this->registerErrorHandler();
+        }
     }
 
     /**
@@ -62,17 +71,15 @@ class TrackerServiceProvider extends ServiceProvider
             ]);
         }
 
-        $this->registerSqlQueryLogWatcher();
-    }
-
-    protected function registerSqlQueryLogWatcher()
-    {
         $tracker = new Tracker;
 
-        if ($tracker->getTrackerDisabled() || $tracker->getSqlTrackerDisabled()) {
-            return false;
+        if (! $tracker->getTrackerDisabled('sql_queries')) {
+            $this->registerSqlQueryLogWatcher($tracker);
         }
+    }
 
+    protected function registerSqlQueryLogWatcher(Tracker $tracker)
+    {
         if (class_exists('Illuminate\Database\Events\QueryExecuted')) {
             $this->app['events']->listen('Illuminate\Database\Events\QueryExecuted', function ($query) use ($tracker) {
                 $tracker->sqlQuery($query->sql, $query->bindings, $query->time, $query->connectionName);

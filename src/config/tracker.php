@@ -20,12 +20,10 @@ return [
     |
     | By setting this value to true, the tracker will be disabled completely.
     |
+    | Supported: ['logs', 'sql_queries', 'errors']
+    |
     */
-    'disabled' => [
-        'all_queries' => env('TRACKER_DISABLED', false),
-        'log_queries' => env('TRACKER_LOG_QUERIES_DISABLED', false),
-        'sql_queries' => env('TRACKER_SQL_QUERIES_DISABLED', false)
-    ],
+    'disabled' => env('TRACKER_DISABLED', false),
 
     /*
     |--------------------------------------------------------------------------

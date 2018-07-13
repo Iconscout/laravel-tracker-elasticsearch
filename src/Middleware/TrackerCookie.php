@@ -34,9 +34,9 @@ class TrackerCookie
     {
         $tracker = new Tracker;
 
-        if ($tracker->getTrackerDisabled() || ($tracker->getLogTrackerDisabled() && $tracker->getSqlTrackerDisabled())) {
+        /*if ($tracker->getTrackerDisabled()) {
             return $next($request);
-        }
+        }*/
 
         $cookie = $tracker->cookieTracker();
 

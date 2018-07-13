@@ -46,14 +46,13 @@ class ErrorHandler extends ExceptionHandler
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \Exception  $exception
+     *
      * @return \Illuminate\Http\Response
      */
     public function render($request, Exception $exception)
     {
-        $exception = $this->prepareException($exception);
-
         $tracker = new Tracker;
-        $tracker->errorQuery($request, $exception);
+        $tracker->trackError($request, $this->prepareException($exception));
 
         return $this->previous ? $this->previous->render($request, $exception) : null;
     }

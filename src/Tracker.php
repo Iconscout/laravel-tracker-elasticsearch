@@ -21,6 +21,7 @@ use Jenssegers\Agent\Agent;
 use Snowplow\RefererParser\Parser;
 
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Cookie;
 // use Illuminate\Support\Facades\Route;
@@ -217,6 +218,10 @@ class Tracker
 
     public function getTrackerDisabled($type = true): bool
     {
+        if (App::runningInConsole()) {
+            return true;
+        }
+
         $disabled_type = Config::get('tracker.disabled', false);
 
         if (! is_array($disabled_type)) {

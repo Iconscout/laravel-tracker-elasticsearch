@@ -50,7 +50,10 @@
         "laravel": {
             "providers": [
                 "Iconscout\\Tracker\\TrackerServiceProvider"
-            ]
+            ],
+            "aliases": {
+                "Tracker": "Iconscout\\Tracker\\Facades\\Tracker"
+            }
         }
     }
 }

@@ -79,11 +79,11 @@ class TrackerMiddleware
             'cookie_id' => $cookie
         ];
 
-        Cache::tags(['tracker'])->forever($cookie, $model);
+        Cache::tags(['tracker.cookie'])->forever($cookie, $model);
 
         $response = $next($request);
 
-        $tracker->trackLog($request, $model);
+        $tracker->trackLog();
 
         return $response;
     }

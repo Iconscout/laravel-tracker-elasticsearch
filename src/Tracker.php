@@ -39,20 +39,26 @@ class Tracker
     protected $es;
 
     /**
+     * @var string
+     */
+    protected $request;
+
+    /**
      * ElasticSearch constructor.
      */
     public function __construct()
     {
         $this->es = new ElasticSearch;
+        $this->request = request();
     }
 
-    public function trackLog($request, $model)
+    public function trackLog()
     {
         if ($this->excludedTracker()) {
             return false;
         }
 
-        $model = $this->indexLogDocument($request, $model);
+        $model = $this->indexLogDocument();
         $type = 'logs';
 
         if (Config::get('tracker.queue', false)) {
@@ -60,6 +66,33 @@ class Tracker
         }
 
         return $this->es->indexDocument($model, $type);
+    }
+
+    public function trackEvents($events)
+    {
+
+        $cookie = $this->cookieTracker();
+        $log = Cache::tags(['tracker.cookie'])->get($cookie);
+
+        if (is_array($events)) {
+            foreach ($events as $type => $properties) {
+                $log['events'][] = [
+                    'type' => $type,
+                    'properties' => $properties
+                ];
+            }
+        } else {
+            $args = func_get_args();
+
+            if (count($args) > 1) {
+                $log['events'][] = [
+                    'type' => $args[0],
+                    'properties' => $args[1]
+                ];
+            }
+        }
+
+        Cache::tags(['tracker.cookie'])->forever($cookie, $log);
     }
 
     public function indexQueueLogDocument($model, $type)
@@ -71,14 +104,18 @@ class Tracker
         return true;
     }
 
-    public function indexLogDocument($request, $model)
+    public function indexLogDocument()
     {
         $agent = new Agent;
+        $request = $this->request;
         $browser = $agent->browser();
         $platform = $agent->platform();
         $referer_url = $request->headers->get('referer');
 
-        $model = $model + [
+        $cookie = $this->cookieTracker();
+        $log = Cache::tags(['tracker.cookie'])->get($cookie);
+
+        $model = $log + [
             'referer' => [
                 'url' => $referer_url,
                 'domain' => $this->domain($referer_url),
@@ -153,7 +190,7 @@ class Tracker
         }
 
         $cookie = $this->cookieTracker();
-        $log = Cache::tags('tracker')->get($cookie);
+        $log = Cache::tags(['tracker.cookie'])->get($cookie);
 
         $model = [
             'id' => Uuid::generate(1, '02:42:ac:14:00:03')->string,
@@ -171,13 +208,13 @@ class Tracker
         return $model;
     }
 
-    public function trackError($request, $exception)
+    public function trackError($exception)
     {
         if ($this->excludedTracker()) {
             return false;
         }
 
-        $model = $this->indexErrorDocument($request, $exception);
+        $model = $this->indexErrorDocument($exception);
         $type = 'errors';
 
         if (Config::get('tracker.queue', false)) {
@@ -196,10 +233,10 @@ class Tracker
         return true;
     }
 
-    public function indexErrorDocument($request, $exception)
+    public function indexErrorDocument($exception)
     {
         $cookie = $this->cookieTracker();
-        $log = Cache::tags('tracker')->get($cookie);
+        $log = Cache::tags(['tracker.cookie'])->get($cookie);
 
         $model = [
             'id' => Uuid::generate(1, '02:42:ac:14:00:03')->string,
@@ -234,7 +271,7 @@ class Tracker
 
     public function excludedTracker(): bool
     {
-        $request = request();
+        $request = $this->request;
 
         return $this->excludedRoutes($request->route()->getName()) || $this->excludedPaths($request->path());
     }
@@ -258,7 +295,7 @@ class Tracker
 
     public function excludedPaths($path): bool
     {
-        // $path = request()->path();
+        // $path = $this->request->path();
         $exclude_path = Config::get('tracker.excludes.paths');
 
         if (is_array($exclude_path)) {

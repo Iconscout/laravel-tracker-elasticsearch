@@ -71,11 +71,20 @@ class TrackerServiceProvider extends ServiceProvider
             ]);
         }
 
+        $this->registerTrackerService();
+
         $tracker = new Tracker;
 
         if (! $tracker->getTrackerDisabled('sql_queries')) {
             $this->registerSqlQueryLogWatcher($tracker);
         }
+    }
+
+    public function registerTrackerService()
+    {
+        $this->app->singleton('tracker', function ($app) {
+            return new Tracker;
+        });
     }
 
     protected function registerSqlQueryLogWatcher(Tracker $tracker)

@@ -52,7 +52,7 @@ class ErrorHandler extends ExceptionHandler
     public function render($request, Exception $exception)
     {
         $tracker = new Tracker;
-        $tracker->trackError($request, $this->prepareException($exception));
+        $tracker->trackError($this->prepareException($exception));
 
         return $this->previous ? $this->previous->render($request, $exception) : null;
     }

@@ -40,6 +40,10 @@ class ElasticSearch
 
     public function indexDocument($model, $type)
     {
+        if (empty($model['id'])) {
+            return false;
+        }
+
         $params = [
             'index' => $this->index,
             'type' => $type,

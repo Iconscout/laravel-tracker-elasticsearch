@@ -115,6 +115,10 @@ class Tracker
         $cookie = $this->cookieTracker();
         $log = Cache::tags(['tracker.cookie'])->get($cookie);
 
+        if (empty($log)) {
+            $log = [];
+        }
+
         $model = $log + [
             'referer' => [
                 'url' => $referer_url,

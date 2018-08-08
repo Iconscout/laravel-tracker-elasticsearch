@@ -70,7 +70,6 @@ class Tracker
 
     public function trackEvents($events)
     {
-
         $cookie = $this->cookieTracker();
         $log = Cache::tags(['tracker.cookie'])->get($cookie);
 
@@ -129,7 +128,7 @@ class Tracker
             ],
             'url' => $request->url(),
             'params' => $request->query(),
-            'route' => $request->route()->getName(),
+            'route' => $this->routeName($request),
             'device' => [
                 'kind' => $agent->device(),
                 'model' => $this->getDeviceKind($agent),
@@ -277,7 +276,7 @@ class Tracker
     {
         $request = $this->request;
 
-        return $this->excludedRoutes($request->route()->getName()) || $this->excludedPaths($request->path());
+        return $this->excludedRoutes($this->routeName($request)) || $this->excludedPaths($request->path());
     }
 
     public function excludedRoutes($route): bool
@@ -380,5 +379,10 @@ class Tracker
         }
 
         return Response::HTTP_INTERNAL_SERVER_ERROR;
+    }
+
+    public function routeName($request)
+    {
+        return $request->route() ? $request->route()->getName() : null;
     }
 }

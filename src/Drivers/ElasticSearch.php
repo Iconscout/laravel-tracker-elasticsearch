@@ -51,7 +51,9 @@ class ElasticSearch
             'body' => $model
         ];
 
-        return $this->client->index($params);
+        try {
+            return $this->client->index($params);
+        } catch (\Exception $e) {}
     }
 
     public function createIndex()

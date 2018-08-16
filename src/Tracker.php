@@ -259,7 +259,7 @@ class Tracker
 
     public function getTrackerDisabled($type = true): bool
     {
-        if (App::runningInConsole() || Agent::isRobot()) {
+        if (App::runningInConsole() || (new Agent())->isRobot()) {
             return true;
         }
 
